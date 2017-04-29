@@ -20,6 +20,18 @@ namespace EntityFramework_65342
 
         public static async Task DoWhatIMean(MyDbContext context)
         {
+            var match = new Customer
+            {
+                Orders = new List<Order>
+                {
+                    new Order(),
+                    new Order(),
+                },
+                Address = new Address(),
+            };
+ 
+            await context.AddAsync(match);
+            await context.SaveChangesAsync();
             var results = from c in context.Customers
                           where c.Id < 400
                           select new
@@ -65,7 +77,7 @@ namespace EntityFramework_65342
 
             protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
             {
-                optionsBuilder.UseSqlServer("Server=(localdb)\\mssqllocaldb;Database=aspnet-EntityFramework_65342;Trusted_Connection=True;MultipleActiveResultSets=true");
+                optionsBuilder.UseSqlite("Data Source=EntityFramework_6534.db");
             }
         }
     }
