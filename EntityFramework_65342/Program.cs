@@ -29,7 +29,8 @@ namespace EntityFramework_65342
                 },
                 Address = new Address(),
             };
- 
+
+            // See aspnet/EntityFrameworkCore#6534
             await context.AddAsync(match);
             await context.SaveChangesAsync();
             var results = from c in context.Customers
@@ -41,7 +42,31 @@ namespace EntityFramework_65342
                           };
 
             var realz = await results.ToListAsync();
-            Console.WriteLine(realz.Count);
+            Console.WriteLine($"DTO count: {realz.Count}.");
+
+            // See aspnet/EntityFrameworkCore#8208 and aspnet/EntityFrameworkCore#9128
+            var lastResults = await context.Customers.Select(c => new
+            {
+                Name = c.Address.CustomerId,
+                MaxOrderId = c.Orders.OrderByDescending(o => o.Id).Select(o => o.Id).First(),
+            }).LastAsync();
+            Console.WriteLine($"Inner DTO max Id: {lastResults.MaxOrderId}");
+
+            // See aspnet/EntityFrameworkCore#8208 and aspnet/EntityFrameworkCore#9128
+            var deepResults = await context.Customers.Select(c => new
+            {
+                Name = c.Address.CustomerId,
+                Orders = c.Orders.Select(i => new
+                {
+                    i.Id,
+                    i.Yes
+                }).ToList(),
+            }).ToListAsync();
+
+            foreach (var item in deepResults)
+            {
+                Console.WriteLine($"Inner DTO count: {item.Orders.Count}.");
+            }
         }
 
         public class Customer
